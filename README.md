@@ -112,11 +112,11 @@ Computes distance metrics from testing coordinate $\mathbf{x}$ to training vecto
 
 *   **Euclidean Distance:**
     $$
-    d(\mathbf{x}, \mathbf{x}_i) = \sqrt{\sum_{j=1}^d (x_j - x_{i,j})^2}
+    d(\mathbf{x}, \mathbf{x}_i) = \sqrt{\sum\limits_{j=1}^d (x_j - x_{i,j})^2}
     $$
 *   **Manhattan Distance:**
     $$
-    d(\mathbf{x}, \mathbf{x}_i) = \sum_{j=1}^d |x_j - x_{i,j}|
+    d(\mathbf{x}, \mathbf{x}_i) = \sum\limits_{j=1}^d |x_j - x_{i,j}|
     $$
 
 Selects class label based on the majority vote of the top $k$ nearest neighbors.
@@ -126,11 +126,11 @@ Splits nodes by calculating Information Gain via Entropy reduction.
 
 *   **Entropy of a dataset $D$:**
     $$
-    H(D) = -\sum_{c \in C} p(c) \log_2 p(c)
+    H(D) = -\sum\limits_{c \in C} p(c) \log_2 p(c)
     $$
 *   **Information Gain of a split on feature $A$ at threshold $T$:**
     $$
-    IG(D, A) = H(D) - \sum_{v \in \{\text{left}, \text{right}\}} \frac{|D_v|}{|D|} H(D_v)
+    IG(D, A) = H(D) - \sum\limits_{v \in \{\text{left}, \text{right}\}} \frac{|D_v|}{|D|} H(D_v)
     $$
 
 Recursively builds split nodes until reaching `maxDepth` or `minSamplesSplit`.
@@ -152,12 +152,13 @@ Calculates class priors $P(c)$ and applies Bayes theorem using the Gaussian Prob
 
 *   **Gaussian Probability Density:**
     $$
-    P(x_i | c) = \frac{1}{\sqrt{2\pi\sigma_c^2}} \exp\left( -\frac{(x_i - \mu_c)^2}{2\sigma_c^2} \right)
+    P(x_i | c) = \frac{1}{\sqrt{2\pi\sigma_c^2}} e^{-\frac{(x_i - \mu_c)^2}{2\sigma_c^2}}
     $$
 *   **Posterior Probability:**
     $$
-    P(c | \mathbf{x}) \propto P(c) \prod_{i=1}^d P(x_i | c)
+    P(c | \mathbf{x}) \propto P(c) \prod\limits_{i=1}^d P(x_i | c)
     $$
+
 
 
 ---
