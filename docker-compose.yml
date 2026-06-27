@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  sandbox:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: decodelabs-ai-sandbox
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - JWT_SECRET=decodelabs_ai_sandbox_super_secret_key_12345
+      - DB_PATH=/app/server/db/database.db
+    volumes:
+      - db-data:/app/server/db
+
+volumes:
+  db-data:
+    driver: local

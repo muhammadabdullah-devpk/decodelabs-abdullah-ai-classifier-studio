@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Abdullah AI — Data Classification Studio</title>
+  <meta name="description" content="An interactive supervised machine learning playground to explore classifiers and visualize decision boundaries.">
+  <!-- Remix Icons CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
+  <!-- Custom CSS Design System -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <a href="#" class="logo">
+      <div class="logo-icon">AI</div>
+      <span>Abdullah AI <span style="font-weight: 300; font-size: 0.9rem; letter-spacing: 0.1em; color: var(--accent-tertiary);">CLASSIFIER STUDIO</span></span>
+    </a>
+    <div class="nav-user" id="authSection">
+      <span style="font-size:0.85rem; color:var(--text-muted);">
+        <i class="ri-shield-check-line" style="color: var(--accent-success);"></i> Local Standalone Mode
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Application Layout -->
+  <main>
+    <!-- Left Panel: Control Center -->
+    <section class="sidebar">
+      <!-- Widget 1: Dataset Loader -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><i class="ri-database-2-line"></i> 1. Select Dataset</h3>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data Source</label>
+          <select class="form-select" id="datasetSource">
+            <option value="iris">Iris Flower Dataset (3 classes/reduced to 2)</option>
+            <option value="synthetic_linear">Synthetic Linear (2D Sep)</option>
+            <option value="synthetic_moons">Synthetic Moons (Non-Linear)</option>
+            <option value="synthetic_circular">Synthetic Circles (Nested Ring)</option>
+            <option value="custom">Upload CSV Dataset...</option>
+          </select>
+        </div>
+
+        <div id="customUploadContainer" style="display: none;">
+          <div class="upload-zone" id="dropZone">
+            <i class="ri-upload-cloud-2-line upload-icon"></i>
+            <span style="font-size: 0.85rem; font-weight: 500;">Drag CSV here or click</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Ensure columns: Feature1, Feature2, Label</span>
+            <input type="file" id="fileInput" accept=".csv" style="display: none;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Widget 2: Algorithm Selector -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><i class="ri-cpu-line"></i> 2. Choose Classifier</h3>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Supervised Algorithm</label>
+          <select class="form-select" id="modelAlgorithm">
+            <option value="knn">k-Nearest Neighbors (k-NN)</option>
+            <option value="dt">Decision Tree Classifier</option>
+            <option value="lr">Logistic Regression (SGD)</option>
+            <option value="nb">Gaussian Naive Bayes</option>
+          </select>
+        </div>
+
+        <!-- Dynamic Parameters Section -->
+        <div id="algoParamsContainer">
+          <!-- KNN Params -->
+          <div id="params-knn" class="algo-params">
+            <div class="slider-container" style="margin-bottom: 1rem;">
+              <div class="slider-header">
+                <span>Number of Neighbors (k)</span>
+                <span class="slider-val" id="val-knn-k">3</span>
+              </div>
+              <input type="range" id="param-knn-k" min="1" max="15" step="2" value="3">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Distance Metric</label>
+              <select class="form-select" id="param-knn-metric">
+                <option value="euclidean">Euclidean</option>
+                <option value="manhattan">Manhattan</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Decision Tree Params -->
+          <div id="params-dt" class="algo-params" style="display: none;">
+            <div class="slider-container" style="margin-bottom: 1rem;">
+              <div class="slider-header">
+                <span>Max Depth</span>
+                <span class="slider-val" id="val-dt-depth">5</span>
+              </div>
+              <input type="range" id="param-dt-depth" min="1" max="10" step="1" value="5">
+            </div>
+            <div class="slider-container">
+              <div class="slider-header">
+                <span>Min Split Samples</span>
+                <span class="slider-val" id="val-dt-split">2</span>
+              </div>
+              <input type="range" id="param-dt-split" min="2" max="10" step="1" value="2">
+            </div>
+          </div>
+
+          <!-- Logistic Regression Params -->
+          <div id="params-lr" class="algo-params" style="display: none;">
+            <div class="slider-container" style="margin-bottom: 1rem;">
+              <div class="slider-header">
+                <span>Learning Rate</span>
+                <span class="slider-val" id="val-lr-rate">0.1</span>
+              </div>
+              <input type="range" id="param-lr-rate" min="0.01" max="1.0" step="0.01" value="0.1">
+            </div>
+            <div class="slider-container">
+              <div class="slider-header">
+                <span>Training Epochs</span>
+                <span class="slider-val" id="val-lr-epochs">100</span>
+              </div>
+              <input type="range" id="param-lr-epochs" min="10" max="500" step="10" value="100">
+            </div>
+          </div>
+
+          <!-- Naive Bayes Params (None) -->
+          <div id="params-nb" class="algo-params" style="display: none;">
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">
+              Gaussian Naive Bayes has no configurable hyperparameters.
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Widget 3: Preprocessing Config -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><i class="ri-settings-4-line"></i> 3. Preprocess Split</h3>
+        </div>
+        <div class="slider-container" style="margin-bottom: 1rem;">
+          <div class="slider-header">
+            <span>Test Data Split Ratio</span>
+            <span class="slider-val" id="val-split-ratio">20%</span>
+          </div>
+          <input type="range" id="splitRatio" min="10" max="50" step="5" value="20">
+        </div>
+        <div class="flex-between">
+          <label class="form-label" style="margin: 0; cursor: pointer;" for="scaleFeatures">Scale Features (Standardize)</label>
+          <input type="checkbox" id="scaleFeatures" checked style="cursor: pointer; width: 18px; height: 18px;">
+        </div>
+      </div>
+
+      <!-- Train Button Action -->
+      <button class="btn btn-primary" id="btnTrainModel" style="width: 100%; padding: 1rem; border-radius: var(--border-radius); font-size: 1.1rem; justify-content: center;">
+        <i class="ri-play-fill" style="font-size: 1.25rem;"></i> Train Model & Evaluate
+      </button>
+    </section>
+
+    <!-- Right Panel: Data & Results Workspace -->
+    <section class="workspace">
+      <!-- Tabs bar -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-studio"><i class="ri-bar-chart-box-line"></i> Data Studio</button>
+        <button class="tab-btn" data-tab="tab-trainer"><i class="ri-compass-3-line"></i> Visual Boundary</button>
+        <button class="tab-btn" data-tab="tab-roc"><i class="ri-route-line"></i> ROC Curve</button>
+        <button class="tab-btn" data-tab="tab-predictor"><i class="ri-shield-user-line"></i> Predictor Sandbox</button>
+        <button class="tab-btn" data-tab="tab-history" id="tabHistoryBtn"><i class="ri-history-line"></i> Model History</button>
+        <button class="tab-btn" data-tab="tab-profile"><i class="ri-user-settings-line"></i> Dev Profile</button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="tab-container-wrapper">
+        <!-- 1. Data Studio Tab -->
+        <div class="tab-content active" id="tab-studio">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="ri-table-line"></i> Loaded Dataset Summary</h3>
+              <span class="slider-val" id="datasetRowStats">0 Rows Loaded</span>
+            </div>
+            
+            <div class="metrics-grid">
+              <div class="metric-box">
+                <div class="metric-label">Features Count</div>
+                <div class="metric-value" id="statsFeatures">0</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-label">Target Class Ratio (0 / 1)</div>
+                <div class="metric-value" style="font-size: 1.25rem; font-family: var(--font-mono); margin-top: 0.6rem;" id="statsRatio">0 / 0</div>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table id="datasetPreviewTable">
+                <thead>
+                  <tr>
+                    <th>Row ID</th>
+                    <th>Feature X</th>
+                    <th>Feature Y</th>
+                    <th>Label Class</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="4" class="empty-state">
+                      <i class="ri-inbox-line"></i>
+                      No dataset loaded yet. Please select a source.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Visual Boundary Tab -->
+        <div class="tab-content" id="tab-trainer">
+          <div class="playground-layout">
+            <!-- Left Scatter Chart Column -->
+            <div class="visualizer-container">
+              <div class="canvas-wrapper">
+                <canvas id="scatterCanvas" width="500" height="500"></canvas>
+              </div>
+              <div class="canvas-legend">
+                <div class="legend-item">
+                  <div class="legend-color" style="background: #ff007f;"></div>
+                  <span>Class 0 (Negative)</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color" style="background: #00f0ff;"></div>
+                  <span>Class 1 (Positive)</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color" style="background: transparent; border: 2px solid white; border-radius: 50%;"></div>
+                  <span>Test Split Sample</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Metrics Column -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title"><i class="ri-medal-line"></i> Classification Metrics</h3>
+                </div>
+                <div class="metrics-grid">
+                  <div class="metric-box">
+                    <div class="metric-label">Accuracy</div>
+                    <div class="metric-value" id="val-accuracy">0.00%</div>
+                  </div>
+                  <div class="metric-box">
+                    <div class="metric-label">F1-Score</div>
+                    <div class="metric-value" id="val-f1">0.000</div>
+                  </div>
+                  <div class="metric-box" style="grid-column: span 2;">
+                    <div class="flex-between">
+                      <span class="metric-label">Precision: <span style="font-weight:700; color:var(--text-main)" id="val-precision">0.000</span></span>
+                      <span class="metric-label">Recall: <span style="font-weight:700; color:var(--text-main)" id="val-recall">0.000</span></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title"><i class="ri-grid-line"></i> Confusion Matrix</h3>
+                </div>
+                <div class="confusion-matrix-wrapper">
+                  <div class="matrix-grid">
+                    <div></div>
+                    <div class="matrix-header">Pred 0</div>
+                    <div class="matrix-header">Pred 1</div>
+
+                    <div class="matrix-header">Act 0</div>
+                    <div class="matrix-cell true-negative">
+                      <div class="matrix-number" id="cm-tn">0</div>
+                      <div class="matrix-percent">TN</div>
+                    </div>
+                    <div class="matrix-cell false-positive">
+                      <div class="matrix-number" id="cm-fp">0</div>
+                      <div class="matrix-percent">FP</div>
+                    </div>
+
+                    <div class="matrix-header">Act 1</div>
+                    <div class="matrix-cell false-negative">
+                      <div class="matrix-number" id="cm-fn">0</div>
+                      <div class="matrix-percent">FN</div>
+                    </div>
+                    <div class="matrix-cell true-positive">
+                      <div class="matrix-number" id="cm-tp">0</div>
+                      <div class="matrix-percent">TP</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Save model utility -->
+              <div class="card" id="saveModelCard" style="display: none;">
+                <div class="form-group" style="margin: 0;">
+                  <label class="form-label">Save Trained Model Configuration</label>
+                  <div class="flex-row">
+                    <input type="text" class="form-input flex-grow" id="modelSaveName" placeholder="Model Name (e.g. KNN Optimized Iris)">
+                    <button class="btn btn-primary" id="btnSaveModel"><i class="ri-save-line"></i> Save</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. ROC Curve Tab -->
+        <div class="tab-content" id="tab-roc">
+          <div class="playground-layout">
+            <div class="visualizer-container">
+              <div class="canvas-wrapper">
+                <canvas id="rocCanvas" width="500" height="500"></canvas>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><i class="ri-information-line"></i> About ROC & AUC</h3>
+              </div>
+              <div style="font-size: 0.9rem; color: var(--text-muted); display:flex; flex-direction:column; gap:1rem;">
+                <p>
+                  The **Receiver Operating Characteristic (ROC)** curve plots the **True Positive Rate (TPR)** against the **False Positive Rate (FPR)** at various classification thresholds.
+                </p>
+                <p>
+                  The red dashed line represents a completely random classifier (AUC = 0.5). A perfect classifier hugs the top-left corner, achieving an **Area Under the Curve (AUC)** of 1.0.
+                </p>
+                <p>
+                  *Note: Tree-based outputs are binary nodes, showing single-point thresholds, whereas KNN and Logistic Regression yield full probabilistic distributions.*
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Predictor Sandbox Tab -->
+        <div class="tab-content" id="tab-predictor">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="ri-calculator-line"></i> Test Real-Time Inference</h3>
+            </div>
+            
+            <div class="empty-state" id="predictorEmptyState">
+              <i class="ri-bubble-chart-line"></i>
+              Please train a model first in the "Visual Boundary" tab to enable real-time predictions.
+            </div>
+
+            <div id="predictorForm" style="display: none;">
+              <form id="inferenceForm" class="playground-layout">
+                <!-- Inputs Section -->
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                  <div class="form-group">
+                    <label class="form-label" id="lblPredictX">Feature X Input Value</label>
+                    <input type="number" step="any" class="form-input" id="predictX" required value="0">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" id="lblPredictY">Feature Y Input Value</label>
+                    <input type="number" step="any" class="form-input" id="predictY" required value="0">
+                  </div>
+                  <button type="submit" class="btn btn-primary" style="justify-content: center; padding: 0.8rem;">
+                    <i class="ri-magic-line"></i> Predict Outcome
+                  </button>
+                </div>
+
+                <!-- Predictions Display Box -->
+                <div class="card" style="justify-content: center; align-items: center; text-align: center; border-color: rgba(0, 240, 255, 0.15); background: rgba(0, 240, 255, 0.02);">
+                  <div class="form-label" style="margin-bottom: 0.5rem;">Predicted Classification</div>
+                  <div id="predictionResult" style="font-size: 2.2rem; font-weight: 800; text-transform: uppercase;">
+                    --
+                  </div>
+                  <div class="slider-header" style="margin-top: 1rem; width: 100%; max-width: 200px;">
+                    <span>Confidence level:</span>
+                    <span class="slider-val" id="predictionConfidence">0%</span>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Model History Tab -->
+        <div class="tab-content" id="tab-history">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="ri-history-line"></i> Saved Models Catalog</h3>
+              <button class="btn btn-accent btn-sm" id="btnRefreshHistory"><i class="ri-refresh-line"></i> Refresh</button>
+            </div>
+
+            <div class="table-container">
+              <table id="historyTable">
+                <thead>
+                  <tr>
+                    <th>Model Name</th>
+                    <th>Algorithm</th>
+                    <th>Test Accuracy</th>
+                    <th>F1 Score</th>
+                    <th>Date Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="6" class="empty-state">
+                      <i class="ri-inbox-line"></i>
+                      No saved models found yet. Train a classifier and click Save.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+        <!-- 6. Developer Profile Tab -->
+        <div class="tab-content" id="tab-profile">
+          <div class="card" style="border-color: rgba(138, 43, 226, 0.25);">
+            <div class="playground-layout" style="grid-template-columns: 1fr 1.5fr; gap: 2rem; align-items: start;">
+              
+              <!-- Left Column: Avatar & Contact Details -->
+              <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.25rem;">
+                <div style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; font-weight: 800; box-shadow: var(--glow-shadow);">
+                  MA
+                </div>
+                <div>
+                  <h2 style="font-size: 1.8rem; margin-bottom: 0.25rem;" class="gradient-text">Muhammad Abdullah</h2>
+                  <div style="color: var(--accent-tertiary); font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    AI & ML Engineer
+                  </div>
+                  <div style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.25rem;">
+                    <i class="ri-map-pin-line"></i> Lahore, Pakistan
+                  </div>
+                </div>
+                
+                <!-- Social links -->
+                <div style="display: flex; gap: 0.75rem; width: 100%; justify-content: center;">
+                  <a href="mailto:meharabdullah4337@gmail.com" class="btn btn-sm" style="padding: 0.5rem;" title="Email"><i class="ri-mail-line" style="font-size: 1.1rem;"></i></a>
+                  <a href="https://github.com/muhammadabdullah-devpk" target="_blank" class="btn btn-sm" style="padding: 0.5rem;" title="GitHub"><i class="ri-github-line" style="font-size: 1.1rem;"></i></a>
+                  <a href="https://linkedin.com/in/muhammad-abdullah-devpk" target="_blank" class="btn btn-sm" style="padding: 0.5rem;" title="LinkedIn"><i class="ri-linkedin-box-line" style="font-size: 1.1rem;"></i></a>
+                </div>
+
+                <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; text-align: left; background: rgba(255, 255, 255, 0.01); border: 1px solid var(--border-color); padding: 1rem; border-radius: var(--border-radius-sm);">
+                  <strong>About Me:</strong> Passionate Computer Science student focused on Artificial Intelligence, Machine Learning, Large Language Models (LLMs), NLP, and Full Stack AI Development.
+                </div>
+              </div>
+
+              <!-- Right Column: Skills & Goals -->
+              <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <!-- Skills Group -->
+                <div>
+                  <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="ri-code-s-slash-line" style="color: var(--accent-tertiary);"></i> Technical Skills
+                  </h3>
+                  <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                    <div>
+                      <div class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Programming Languages</div>
+                      <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                        <span class="btn btn-sm" style="font-family: var(--font-mono); font-size: 0.75rem; padding: 0.2rem 0.5rem;">Python ⭐️⭐️⭐️⭐️⭐️</span>
+                        <span class="btn btn-sm" style="font-family: var(--font-mono); font-size: 0.75rem; padding: 0.2rem 0.5rem;">C++</span>
+                        <span class="btn btn-sm" style="font-family: var(--font-mono); font-size: 0.75rem; padding: 0.2rem 0.5rem;">SQL</span>
+                        <span class="btn btn-sm" style="font-family: var(--font-mono); font-size: 0.75rem; padding: 0.2rem 0.5rem;">JavaScript</span>
+                        <span class="btn btn-sm" style="font-family: var(--font-mono); font-size: 0.75rem; padding: 0.2rem 0.5rem;">HTML5/CSS3</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Artificial Intelligence / ML</div>
+                      <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                        <span class="btn btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; border-color: var(--accent-primary);">Machine Learning</span>
+                        <span class="btn btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; border-color: var(--accent-primary);">NLP & LLMs</span>
+                        <span class="btn btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; border-color: var(--accent-primary);">Prompt Eng.</span>
+                        <span class="btn btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; border-color: var(--accent-primary);">RAG & Agents</span>
+                        <span class="btn btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; border-color: var(--accent-primary);">Scikit-learn</span>
+                        <span class="btn btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; border-color: var(--accent-primary);">Pandas & NumPy</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Backend & Database</div>
+                      <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                        <span class="btn btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">Flask</span>
+                        <span class="btn btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">REST APIs (JWT)</span>
+                        <span class="btn btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">SQLite / MySQL</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">DevOps & Tools</div>
+                      <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                        <span class="btn btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">Git & GitHub</span>
+                        <span class="btn btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">Docker (Learning)</span>
+                        <span class="btn btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">Linux</span>
+                        <span class="btn btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">VS Code / Colab</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Career Goals -->
+                <div>
+                  <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="ri-flag-line" style="color: var(--accent-secondary);"></i> Career Targets
+                  </h3>
+                  <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; font-size: 0.85rem;">
+                    <div style="display:flex; align-items:center; gap:0.4rem;"><i class="ri-checkbox-circle-fill" style="color:var(--accent-success);"></i> Machine Learning Engineer</div>
+                    <div style="display:flex; align-items:center; gap:0.4rem;"><i class="ri-checkbox-circle-fill" style="color:var(--accent-success);"></i> LLM & GenAI Developer</div>
+                    <div style="display:flex; align-items:center; gap:0.4rem;"><i class="ri-checkbox-circle-fill" style="color:var(--accent-success);"></i> CS Research & Innovation</div>
+                    <div style="display:flex; align-items:center; gap:0.4rem;"><i class="ri-checkbox-circle-fill" style="color:var(--accent-success);"></i> Production Systems Design</div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      <!-- Console Logs Panel Drawer -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title" style="font-size: 0.95rem; font-family: var(--font-sans);"><i class="ri-terminal-box-line"></i> System Console Logs</h3>
+          <button class="btn btn-accent btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" id="btnClearLogs">Clear Log</button>
+        </div>
+        <div class="terminal" id="consoleLogs">
+          <span class="terminal-line info">[INFO] Initialization completed. System ready.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Local database notification overlay -->
+
+  <!-- Toast Notification Popups Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts Loading -->
+  <script src="js/ml.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
