@@ -109,27 +109,56 @@ To run inside isolated containers:
 
 ### 1. k-Nearest Neighbors (k-NN)
 Computes distance metrics from testing coordinate $\mathbf{x}$ to training vectors $\mathbf{x}_i$:
-$$\text{Euclidean Distance: } d(\mathbf{x}, \mathbf{x}_i) = \sqrt{\sum_{j=1}^d (x_j - x_{i,j})^2}$$
-$$\text{Manhattan Distance: } d(\mathbf{x}, \mathbf{x}_i) = \sum_{j=1}^d |x_j - x_{i,j}|$$
+
+*   **Euclidean Distance:**
+    $$
+    d(\mathbf{x}, \mathbf{x}_i) = \sqrt{\sum_{j=1}^d (x_j - x_{i,j})^2}
+    $$
+*   **Manhattan Distance:**
+    $$
+    d(\mathbf{x}, \mathbf{x}_i) = \sum_{j=1}^d |x_j - x_{i,j}|
+    $$
+
 Selects class label based on the majority vote of the top $k$ nearest neighbors.
 
 ### 2. Decision Tree Classifier
-Splits nodes by calculating Information Gain via Entropy reduction. Entropy of a dataset $D$:
-$$H(D) = -\sum_{c \in C} p(c) \log_2 p(c)$$
-Information Gain of a split on feature $A$ at threshold $T$:
-$$IG(D, A) = H(D) - \sum_{v \in \{\text{left}, \text{right}\}} \frac{|D_v|}{|D|} H(D_v)$$
+Splits nodes by calculating Information Gain via Entropy reduction. 
+
+*   **Entropy of a dataset $D$:**
+    $$
+    H(D) = -\sum_{c \in C} p(c) \log_2 p(c)
+    $$
+*   **Information Gain of a split on feature $A$ at threshold $T$:**
+    $$
+    IG(D, A) = H(D) - \sum_{v \in \{\text{left}, \text{right}\}} \frac{|D_v|}{|D|} H(D_v)
+    $$
+
 Recursively builds split nodes until reaching `maxDepth` or `minSamplesSplit`.
 
 ### 3. Logistic Regression
-Updates parameter weights $\mathbf{w}$ and bias $b$ using gradient descent. Sigmoid probability:
-$$P(y=1|\mathbf{x}) = \sigma(\mathbf{w}^T \mathbf{x} + b) = \frac{1}{1 + e^{-(\mathbf{w}^T \mathbf{x} + b)}}$$
-Optimized using Stochastic Gradient Descent (SGD) under Cross-Entropy Loss:
-$$\text{Loss} = -y \log(\hat{y}) - (1-y)\log(1-\hat{y})$$
+Updates parameter weights $\mathbf{w}$ and bias $b$ using gradient descent. 
+
+*   **Sigmoid Probability:**
+    $$
+    P(y=1|\mathbf{x}) = \sigma(\mathbf{w}^T \mathbf{x} + b) = \frac{1}{1 + e^{-(\mathbf{w}^T \mathbf{x} + b)}}
+    $$
+*   **Cross-Entropy Loss (Stochastic Gradient Descent):**
+    $$
+    \text{Loss} = -y \log(\hat{y}) - (1-y)\log(1-\hat{y})
+    $$
 
 ### 4. Gaussian Naive Bayes
 Calculates class priors $P(c)$ and applies Bayes theorem using the Gaussian Probability Density Function:
-$$P(x_i | c) = \frac{1}{\sqrt{2\pi\sigma_c^2}} \exp\left( -\frac{(x_i - \mu_c)^2}{2\sigma_c^2} \right)$$
-$$P(c | \mathbf{x}) \propto P(c) \prod_{i=1}^d P(x_i | c)$$
+
+*   **Gaussian Probability Density:**
+    $$
+    P(x_i | c) = \frac{1}{\sqrt{2\pi\sigma_c^2}} \exp\left( -\frac{(x_i - \mu_c)^2}{2\sigma_c^2} \right)
+    $$
+*   **Posterior Probability:**
+    $$
+    P(c | \mathbf{x}) \propto P(c) \prod_{i=1}^d P(x_i | c)
+    $$
+
 
 ---
 
