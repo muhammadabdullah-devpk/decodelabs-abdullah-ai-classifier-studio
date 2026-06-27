@@ -105,63 +105,7 @@ To run inside isolated containers:
 
 ---
 
-## 📐 Mathematical Overview of Implemented Algorithms
 
-### 1. k-Nearest Neighbors (k-NN)
-Computes distance metrics from testing coordinate $\mathbf{x}$ to training vectors $\mathbf{x}_i$:
-
-*   **Euclidean Distance:**
-    $$
-    d(\mathbf{x}, \mathbf{x}_i) = \sqrt{\sum\limits_{j=1}^d (x_j - x_{i,j})^2}
-    $$
-*   **Manhattan Distance:**
-    $$
-    d(\mathbf{x}, \mathbf{x}_i) = \sum\limits_{j=1}^d |x_j - x_{i,j}|
-    $$
-
-Selects class label based on the majority vote of the top $k$ nearest neighbors.
-
-### 2. Decision Tree Classifier
-Splits nodes by calculating Information Gain via Entropy reduction. 
-
-*   **Entropy of a dataset $D$:**
-    $$
-    H(D) = -\sum\limits_{c \in C} p(c) \log_2 p(c)
-    $$
-*   **Information Gain of a split on feature $A$ at threshold $T$:**
-    $$
-    IG(D, A) = H(D) - \sum\limits_{v \in \{\text{left}, \text{right}\}} \frac{|D_v|}{|D|} H(D_v)
-    $$
-
-Recursively builds split nodes until reaching `maxDepth` or `minSamplesSplit`.
-
-### 3. Logistic Regression
-Updates parameter weights $\mathbf{w}$ and bias $b$ using gradient descent. 
-
-*   **Sigmoid Probability:**
-    $$
-    P(y=1|\mathbf{x}) = \sigma(\mathbf{w}^T \mathbf{x} + b) = \frac{1}{1 + e^{-(\mathbf{w}^T \mathbf{x} + b)}}
-    $$
-*   **Cross-Entropy Loss (Stochastic Gradient Descent):**
-    $$
-    \text{Loss} = -y \log(\hat{y}) - (1-y)\log(1-\hat{y})
-    $$
-
-### 4. Gaussian Naive Bayes
-Calculates class priors $P(c)$ and applies Bayes theorem using the Gaussian Probability Density Function:
-
-*   **Gaussian Probability Density:**
-    $$
-    P(x_i | c) = \frac{1}{\sqrt{2\pi\sigma_c^2}} e^{-\frac{(x_i - \mu_c)^2}{2\sigma_c^2}}
-    $$
-*   **Posterior Probability:**
-    $$
-    P(c | \mathbf{x}) \propto P(c) \prod\limits_{i=1}^d P(x_i | c)
-    $$
-
-
-
----
 
 ## 👥 Developer Profile — Muhammad Abdullah
 *   **Name:** Muhammad Abdullah
